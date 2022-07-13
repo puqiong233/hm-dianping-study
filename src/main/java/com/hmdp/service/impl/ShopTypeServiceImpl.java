@@ -2,6 +2,7 @@ package com.hmdp.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.json.JSONUtil;
+import com.hmdp.dto.Result;
 import com.hmdp.entity.ShopType;
 import com.hmdp.mapper.ShopTypeMapper;
 import com.hmdp.service.IShopTypeService;
@@ -32,7 +33,7 @@ public class ShopTypeServiceImpl extends ServiceImpl<ShopTypeMapper, ShopType> i
     private StringRedisTemplate stringRedisTemplate;
 
     @Override
-    public List<ShopType> queryShopList() {
+    public Result queryShopList() {
         List<ShopType> list = new ArrayList<>();
         // 先判断redis有没有该list
         Set<String> range = stringRedisTemplate.opsForZSet().range(SHOP_TYPE_LIST, 0, -1);
@@ -40,7 +41,7 @@ public class ShopTypeServiceImpl extends ServiceImpl<ShopTypeMapper, ShopType> i
             for (String typeJson : range) {
                 list.add(JSONUtil.toBean(typeJson, ShopType.class, false));
             }
-            return list;
+            return Result.ok(list);
         }
         // redis中没有 向数据库取
         list = query().orderByAsc("sort").list();
@@ -49,6 +50,6 @@ public class ShopTypeServiceImpl extends ServiceImpl<ShopTypeMapper, ShopType> i
             stringRedisTemplate.opsForZSet().add(SHOP_TYPE_LIST, JSONUtil.toJsonStr(shopType),shopType.getSort());
         }
 
-        return list;
+        return Result.ok(list);
     }
 }
